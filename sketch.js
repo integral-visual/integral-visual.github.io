@@ -13,9 +13,9 @@ var integral = 0;
 var displayArea = "";
 
 function myFunction(input) {
-  //return (.002 * Math.pow(input, 2));
+  return (.002 * Math.pow(input, 2));
   //return .000014 * Math.pow(input, 3) - Math.pow(input, 3)*.00001;
-  return 200 * Math.pow(Math.pow(sin(input), 2), .5);
+  //return 200 * Math.pow(Math.pow(sin(input), 2), .5);
   //return input + 20;
   //return 250;
 }
@@ -99,17 +99,18 @@ function riemann() {
       }
     }
   } else if (mode === 2) { // trap
-    for (var g = 0; g < n; n++) {
+    for (var g = 0; g < n; g++) {
       stroke(0, 127, 127);
       fill(255, 0, 0, 120);
-      rect(g * dx, height - myFunction(dx * g), dx, myFunction((g + 1) * dx)); //get f(x) here instead of height
+      quad((g+1)*dx, height, g * dx, height, g*dx, height-myFunction((g) * dx), (g+1)*dx, height-myFunction((g + 1) * dx)); //get f(x) here instead of height
       segmentHeight = height - myFunction(dx * g);
       if (segmentHeight < 0) { //because processing is upside-down
         segmentHeight *= (-1);
         segmentHeight += height;
       }
       if (calculating) { // prevents area from being accounted for more than once
-        segmentArea = (dx * myFunction(dx * g));
+        segmentArea = (myFunction(dx * g) + myFunction(dx * (g+1)))*dx/2;
+
         console.log("dx: " + dx + " f(" + g + ") = " + myFunction(dx * g) + " Area: " + segmentArea);
         estimatedArea += segmentArea;
         //console.log("TOTAL AREA: " + estimatedArea);
