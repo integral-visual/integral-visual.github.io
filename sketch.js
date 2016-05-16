@@ -11,9 +11,10 @@ var sliderOffset = 0; //distance from window border to slider
 var sliderPos = 0; //x position from start of slider
 var integral = 0;
 var displayArea = "";
+var parent_equ_subobj = null;
 
 function myFunction(input) {
-  return (.002 * Math.pow(input, 2));
+  return parent_equ_subobj.f(input);
   //return .000014 * Math.pow(input, 3) - Math.pow(input, 3)*.00001;
   //return 200 * Math.pow(Math.pow(sin(input), 2), .5);
   //return input + 20;
@@ -22,6 +23,10 @@ function myFunction(input) {
 
 function setup() {
   createCanvas(500, 500);
+  parent_equ_subobj = new equ_obj_addition([new equ_obj_axpowb(-.01,2),new equ_obj_axpowb(4,1)]);
+  //-.01x^2+4x
+  
+  //parent_equ_subobj = new equ_obj_axpowb(1,5);
   for (var i = 0; i < width * 2; i++) {
     //values[i] = f(i) ---> point = (i, values[i]) 
     values[i] = myFunction(i);
@@ -29,6 +34,131 @@ function setup() {
   integral = calculateIntegral();
   dx = width / n;
 }
+
+
+
+//These functions represent a subsection of an equation.
+function equ_obj_const(a_) {
+  this.a = a_;
+  this.f = function(x) {
+    return this.a;
+  }
+}
+
+function equ_obj_axpowb(a_,b_) {
+  this.a = a_;
+  this.b = b_;
+  this.f = function(x) {
+    return this.a*pow(x,this.b);
+  }
+}
+
+function equ_obj_addition(subobjects_) {
+  this.subobjects = subobjects_;
+  this.f = function(x) {
+    var sum = 0;
+    for (var i = 0; i < this.subobjects.length; i++) {
+      sum = sum+this.subobjects[i].f(x);
+    }
+    return sum;
+  }
+}
+
+function equ_obj_parenthesis(subobject_) {
+  this.subobject = subobject_;
+  this.f = function(x) {
+    return subobject.f(x);
+  }
+}
+
+
+function parse_PEMDAS(string_var) {
+  var prev_pos = 0;
+  var sub_parenthesis = 0;
+  var sub_strings;
+  var current_sub_string_id = 0;
+  var addition;
+  //First we search for additions, if they are not in parenthesis
+  for (var i=0; i<string_var.length; i++) {
+    if (string_var.charAt(i) == "+") {
+      if (sub_parenthesis == 0) {
+        //This algorithm creates sub-strings split between the additions.
+        sub_strings[current_sub_string_id] = substring(prev_pos,i);
+        prev_pos = i+1;
+        current_sub_string_id += 1;
+      }
+    } else if (string_var.charAt(i) == "(") {
+      sub_parenthesis += 1;
+    } else if (string_var.charAt(i) == ")") {
+      sub_parenthesis -= 1;
+    }
+  }
+  addition = new equ_obj_addition(sub_strings)
+  
+  for (var j=0; j<addition.length; j++) {
+    //if ()
+    for (var i=0; i<sub_strings[j].length; i++) {
+      if (sub_strings[j].charAt(i) == "*") {
+        if (sub_parenthesis == 0) {
+          //This algorithm creates sub-strings split between the additions.
+          sub_strings[current_sub_string_id] = substring(prev_pos,i);
+          prev_pos = i+1;
+          current_sub_string_id += 1;
+        }
+      } else if (string_var.charAt(i) == "(") {
+        sub_parenthesis += 1;
+      } else if (string_var.charAt(i) == ")") {
+        sub_parenthesis -= 1;
+      }
+    }
+  }
+  
+  
+  /*//First we look for parenthesis:
+  var cur_pos_1 = 0;
+  var cur_pos_2 = 0;
+  while (cur_pos_1 != -1) {
+    //Find the parenthesis
+    cur_pos_1 = string_var.indexOf("(",cur_pos);
+    
+    //Find the end of the parenthesis, ignoring parenthesis inside
+    var sub_parenthesis = 1;
+    cur_pos_2 = cur_pos_1+1;
+    while(sub_parenthesis > 0) {
+      if (string_var.charAt(cur_pos_2) == "(") {
+        sub_parenthesis += 1;
+      } else if (string_var.charAt(cur_pos_2) == ")") {
+        sub_parenthesis -= 1;
+      }
+      cur_pos_2++;
+    }
+    //Execute the function again for the 
+    PEMDAS(string_var.substring(cur_pos_1, cur_pos_2));
+  }*/
+}
+
+function parse_basic(string_thing) {
+  a_b_array =  string_thing.split("x");
+  if (a_b_array.length == 2) {
+    var a = parseInt(a_b_array[0]);
+    var b = parseInt(a_b_array[1]);
+    if (a != NaN && b != NaN) {
+      return new equ_obj_axpowb(a,b);
+    } else {
+      return null;
+    }
+  } else if (a_b_array.length == 1) {
+    var a = parseInt(a_b_array[0]);
+    if (a != NaN) {
+      return new equ_obj_const(a);
+    } else {
+      return null;
+    }
+  }
+}
+
+
+
 
 function draw() {
   background(60);
