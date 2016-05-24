@@ -40,6 +40,7 @@ function draw() {
   background(60);
   if (derivMode) {
     calcDeriv(mouseX);
+    drawButton(99, 50, bYpos, bWidth, bHeight, "∫ f(x)");
     for (var i = 0; i < width; i++) {
       strokeWeight(2);
       stroke(255);
@@ -244,24 +245,29 @@ function mouseDragged() {
 }
 
 function mousePressed() {
-  for (var i = 0; i < 4; i++) {
-    if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
-      console.log("duh");
-      mode = i;
+  if (!derivMode) {
+    for (var i = 0; i < 4; i++) {
+      if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
+        console.log("duh");
+        mode = i;
+      }
     }
-  }
-  for (var j = 4; j < 7; j++) {
-    if (mouseX > 2 * bWidth + j * (bWidth + 1) && mouseX < 2 * bWidth + (j + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
-      if (j == 4) {
-        n = prompt("Enter # of subdivisions: ", 100);
-        sliderPos = (n/width)* (width/3);
-        console.log("sfdsfs"+n);
+    for (var j = 4; j < 7; j++) {
+      if (mouseX > 2 * bWidth + j * (bWidth + 1) && mouseX < 2 * bWidth + (j + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
+        if (j == 4) {
+          n = prompt("Enter # of subdivisions: ", 100);
+          sliderPos = (n / width) * (width / 3);
+        } else if (j == 5) {
+          prompt("Enter f(x)");
+        } else if (j == 6) {
+          derivMode = true;
+        }
       }
-      else if(j == 5){
-        prompt("Enter f(x)");
-      }
-      else if(j == 6){
-        derivMode = true;
+    }
+  } else if (derivMode) { 
+   for (var i = 0; i < 1; i++) { //hahahahahaa
+      if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
+            derivMode = false;
       }
     }
   }
