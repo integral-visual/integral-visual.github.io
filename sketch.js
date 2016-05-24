@@ -183,6 +183,8 @@ function calcDeriv(x) {
   stroke(255);
   text("x = " + x, 100, 100);
   text("dy/dx = " + slope, 100, 120);
+  fill(255, 0, 21);
+  line(x , 0, x, height);
 }
 
 function drawButton(id, x, y, w, h, bText) {
