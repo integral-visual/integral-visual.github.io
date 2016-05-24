@@ -23,7 +23,7 @@ function myFunction(input) {
 
 function setup() {
   createCanvas(500, 500);
-  parent_equ_subobj = new equ_obj_addition([new equ_obj_axpowb(-.01,2),new equ_obj_axpowb(4,1)]);
+  parent_equ_subobj = parse_PEMDAS(prompt("Set the function:"),0);
   //-.01x^2+4x
   
   //parent_equ_subobj = new equ_obj_axpowb(1,5);
@@ -55,12 +55,39 @@ function equ_obj_axpowb(a_,b_) {
 
 function equ_obj_addition(subobjects_) {
   this.subobjects = subobjects_;
+  this.subtract = [];
+  for (var i=0;i<this.subobjects.length;i++) {
+    this.subtract[i] = false;
+  }
   this.f = function(x) {
     var sum = 0;
     for (var i = 0; i < this.subobjects.length; i++) {
-      sum = sum+this.subobjects[i].f(x);
+      if (this.subtract[i] == true) {
+        sum = sum-this.subobjects[i].f(x);
+      } else {
+        sum = sum+this.subobjects[i].f(x);
+      }
     }
     return sum;
+  }
+}
+
+function equ_obj_multiplication(subobjects_) {
+  this.subobjects = subobjects_;
+  this.divide = [];
+  for (var i=0;i<this.subobjects.length;i++) {
+    this.divide[i] = false;
+  }
+  this.f = function(x) {
+    var product = 1;
+    for (var i = 0; i < this.subobjects.length; i++) {
+      if (this.divide[i] == true) {
+        product = product/this.subobjects[i].f(x);
+      } else {
+        product = product*this.subobjects[i].f(x);
+      }
+    }
+    return product;
   }
 }
 
@@ -72,87 +99,177 @@ function equ_obj_parenthesis(subobject_) {
 }
 
 
-function parse_PEMDAS(string_var) {
-  var prev_pos = 0;
-  var sub_parenthesis = 0;
+function parse_PEMDAS(string_var, start_at) {
+  //start_at: 2=addition, 3=multiplication, 4=trigs, 5=exponents
+  
   var sub_strings;
+  //Step 1: See if the function is a basic one:
+  var sub_strings = parse_basic(string_var);
+  if (sub_strings != null) {
+    return sub_strings;
+  } else {
+    sub_strings = [];
+  }
+  print("Not a basic function");
+  //Prepare for more advanced ingrediants.
+  var prev_pos = 0;
   var current_sub_string_id = 0;
-  var addition;
-  //First we search for additions, if they are not in parenthesis
-  for (var i=0; i<string_var.length; i++) {
-    if (string_var.charAt(i) == "+") {
+  var sub_parenthesis = 0;
+  
+  //Step 2: If not, we search for additions, if they are not in parenthesis
+  if (start_at <= 2) {
+    if (string_var.indexOf("+") != -1 || string_var.indexOf("-") != -1) {
+      print("Starting addition:");
+      var subtract = [false];
+      for (var i=1; i<string_var.length; i++) {
+        if (string_var.charAt(i) == "+" || string_var.charAt(i) == "-") {
+          if (sub_parenthesis == 0) {
+            //This algorithm creates sub-strings split between the additions.
+            sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
+            prev_pos = i+1;
+            print("Addition Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
+            if (string_var.charAt(i) == "-") {
+              subtract[current_sub_string_id+1] = true;
+            } else {
+              subtract[current_sub_string_id+1] = false;
+            }
+            current_sub_string_id += 1;
+          }
+        } else if (string_var.charAt(i) == "(") {
+          sub_parenthesis += 1;
+        } else if (string_var.charAt(i) == ")") {
+          sub_parenthesis -= 1;
+        }
+      }
+      sub_strings[current_sub_string_id] = string_var.substring(prev_pos,string_var.length);
+      print("Addition Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
+      var subojbects = []
+      for (var i=0; i<sub_strings.length; i++) {
+        subojbects[i] = parse_PEMDAS(sub_strings[i],3);
+      }
+      var addition = new equ_obj_addition(subojbects);
+      addition.subtract = subtract;
+      return addition;
+    }
+  }
+  
+  //Step 3: We search for multiplication and division, if they are not in parenthesis
+  if (start_at <= 3) {
+    if (string_var.indexOf("*") != -1 || string_var.indexOf("/") != -1) {
+      print("Starting multiplication:");
+      var divide = [false];
+      for (var i=1; i<string_var.length; i++) {
+        if (string_var.charAt(i) == "*" || string_var.charAt(i) == "/") {
+          if (sub_parenthesis == 0) {
+            //This algorithm creates sub-strings split between the additions.
+            sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
+            prev_pos = i+1;
+            print("Multiplication Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
+            if (string_var.charAt(i) == "/") {
+              divide[current_sub_string_id+1] = true;
+            } else {
+              divide[current_sub_string_id+1] = false;
+            }
+            current_sub_string_id += 1;
+          }
+        } else if (string_var.charAt(i) == "(") {
+          sub_parenthesis += 1;
+        } else if (string_var.charAt(i) == ")") {
+          sub_parenthesis -= 1;
+        }
+      }
+      sub_strings[current_sub_string_id] = string_var.substring(prev_pos,string_var.length);
+      print("Multiplication Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
+      var subojbects = []
+      for (var i=0; i<sub_strings.length; i++) {
+        subojbects[i] = parse_PEMDAS(sub_strings[i],4);
+      }
+      var multiply = new equ_obj_multiplication(subojbects);
+      multiply.divide = divide;
+      return multiply;
+    }
+  }
+  
+  //Step 4: We look for trig functions
+}
+
+function parse_basic(string_thing) {
+    print("Basic Parse: "+string_thing);
+  a_b_array =  string_thing.split("x");
+  if (a_b_array.length == 2) {
+    a_b_array[1] = trim(a_b_array[1]);
+    print("Basic 2var Parse of :"+a_b_array[0]+":x:"+a_b_array[1]);
+    if (a_b_array[0].includes("+") || a_b_array[0].indexOf("-") > 1 || a_b_array[0].includes("*") || a_b_array[0].includes("/")) {
+      print("Basic Parse failed due to addition or multiplication in 1st term");
+      return null;
+    }
+    if (a_b_array[1].includes("+") || a_b_array[1].indexOf("-") > 1 || a_b_array[1].includes("*") || a_b_array[1].includes("/")) {
+      print("Basic Parse failed due to addition or multiplication in 2nd term");
+      return null;
+    }
+    if (a_b_array[1].charAt(0) != "^" && a_b_array[1] != "") {
+      print("Basic Parse failed due to no ^");
+      return null;
+    }
+    a_b_array[1] = a_b_array[1].replace("^","");
+    var a;
+    if (a_b_array[0] == "") {
+      a = 1;
+    } else {
+      a = parseFloat(a_b_array[0]);
+    }
+    var b;
+    if (a_b_array[1] == "") {
+      b = 1;
+    } else {
+      b = parseFloat(a_b_array[1]);
+    }
+    if (a != NaN && b != NaN) {
+      print("Basic 2var Parse success");
+      return new equ_obj_axpowb(a,b);
+    } else {
+      print("Basic 2var Parse failed due to number parse error");
+      return null;
+    }
+  } else if (a_b_array.length == 1) {
+    print("Basic 1var Parse of :"+a_b_array[0]);
+    var a = parseFloat(a_b_array[0]);
+    if (a != NaN) {
+      print("Basic 1var Parse success");
+      return new equ_obj_const(a);
+    } else {
+      print("Basic 2var Parse failed due to number parse error");
+      return null;
+    }
+  }
+}
+
+function look_for_math_symbols(string_var, array_of_symbols) {
+  var sub_strings = [];
+  var sub_parenthesis = 0;
+  var current_sub_string_id = 0;
+  var which_symbol_it_matches = [];
+  for (var i=1; i<string_var.length; i++) {
+    var matches_a_symbol = -1;
+    for (var j=0; j<array_of_symbols.length; j++) {
+      if (string_var.charAt(i) == array_of_symbols[j]) {
+        matches_a_symbol = j; break;
+      }
+    }
+    if (matches_a_symbol >= 0) {
       if (sub_parenthesis == 0) {
         //This algorithm creates sub-strings split between the additions.
-        sub_strings[current_sub_string_id] = substring(prev_pos,i);
+        sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
+        which_symbol_it_matches[current_sub_string_id] = matches_a_symbol;
         prev_pos = i+1;
+        print(current_sub_string_id);
+        print(current_sub_string_id+": "+sub_strings[current_sub_string_id]);
         current_sub_string_id += 1;
       }
     } else if (string_var.charAt(i) == "(") {
       sub_parenthesis += 1;
     } else if (string_var.charAt(i) == ")") {
       sub_parenthesis -= 1;
-    }
-  }
-  addition = new equ_obj_addition(sub_strings)
-  
-  for (var j=0; j<addition.length; j++) {
-    //if ()
-    for (var i=0; i<sub_strings[j].length; i++) {
-      if (sub_strings[j].charAt(i) == "*") {
-        if (sub_parenthesis == 0) {
-          //This algorithm creates sub-strings split between the additions.
-          sub_strings[current_sub_string_id] = substring(prev_pos,i);
-          prev_pos = i+1;
-          current_sub_string_id += 1;
-        }
-      } else if (string_var.charAt(i) == "(") {
-        sub_parenthesis += 1;
-      } else if (string_var.charAt(i) == ")") {
-        sub_parenthesis -= 1;
-      }
-    }
-  }
-  
-  
-  /*//First we look for parenthesis:
-  var cur_pos_1 = 0;
-  var cur_pos_2 = 0;
-  while (cur_pos_1 != -1) {
-    //Find the parenthesis
-    cur_pos_1 = string_var.indexOf("(",cur_pos);
-    
-    //Find the end of the parenthesis, ignoring parenthesis inside
-    var sub_parenthesis = 1;
-    cur_pos_2 = cur_pos_1+1;
-    while(sub_parenthesis > 0) {
-      if (string_var.charAt(cur_pos_2) == "(") {
-        sub_parenthesis += 1;
-      } else if (string_var.charAt(cur_pos_2) == ")") {
-        sub_parenthesis -= 1;
-      }
-      cur_pos_2++;
-    }
-    //Execute the function again for the 
-    PEMDAS(string_var.substring(cur_pos_1, cur_pos_2));
-  }*/
-}
-
-function parse_basic(string_thing) {
-  a_b_array =  string_thing.split("x");
-  if (a_b_array.length == 2) {
-    var a = parseInt(a_b_array[0]);
-    var b = parseInt(a_b_array[1]);
-    if (a != NaN && b != NaN) {
-      return new equ_obj_axpowb(a,b);
-    } else {
-      return null;
-    }
-  } else if (a_b_array.length == 1) {
-    var a = parseInt(a_b_array[0]);
-    if (a != NaN) {
-      return new equ_obj_const(a);
-    } else {
-      return null;
     }
   }
 }
@@ -178,7 +295,13 @@ function draw() {
   toggle(50, 20, width / 3);
   textSize(14);
   fill(255);
+  /*stroke(0,0,255);//This is a demo of what the derivitive function might look like.
+  line(100,height - values[100],500,height - values[100]-800);
+  line(100,height - values[100],0,height - values[100]+200);
+  strokeWeight(5);
+  point(100,height - values[100]);*/
   stroke(0);
+  //text("Derivitive = 2", 52, 105);
   text("Calculated Integral = " + integral, 52, 105);
   text("Estimated Value = " + displayArea, 52, 120);
   n = sliderVal;
