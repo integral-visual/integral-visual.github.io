@@ -17,11 +17,13 @@ var sliderOffset = 0; //distance from window border to slider
 var sliderPos = 0; //x position from start of slider
 var integral = 0;
 var displayArea = "";
+var equ_subobj;
 
 function setup() {
-  //var cSize = prompt("Window size:", 500);
+  //var cSize = prompt("Window size:", 500)
   var cSize = 500;
   createCanvas(cSize, cSize);
+  equ_subobj = parse_PEMDAS(prompt("Enter f(x)"),0);
   for (var i = 0; i < width * 2; i++) {
     //values[i] = f(i) ---> point = (i, values[i]) 
     values[i] = myFunction(i);
@@ -33,7 +35,8 @@ function setup() {
 }
 
 function myFunction(input) {
-  return .000014 * Math.pow(input, 3) - Math.pow(input, 3) * .00001;
+  return equ_subobj.f(input);
+  //return .000014 * Math.pow(input, 3) - Math.pow(input, 3) * .00001;
 }
 
 function draw() {
@@ -260,7 +263,11 @@ function mousePressed() {
           n = prompt("Enter # of subdivisions: ", 100);
           sliderPos = (n / width) * (width / 3);
         } else if (j == 5) {
-          prompt("Enter f(x)");
+          equ_subobj = parse_PEMDAS(prompt("Enter f(x)"),0);
+          for (var i = 0; i < width * 2; i++) {
+            //values[i] = f(i) ---> point = (i, values[i]) 
+            values[i] = myFunction(i);
+          }
         } else if (j == 6) {
           derivMode = true;
         }
