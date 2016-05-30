@@ -18,12 +18,17 @@ var sliderPos = 0; //x position from start of slider
 var integral = 0;
 var displayArea = "";
 var equ_subobj;
+var equ_string;
+var mouse_pressed = false;
+var mouseOverSlider = false;
 
 function setup() {
+  //frameRate(5);
   var cSize = prompt("Window size:", 500)
   //var cSize = 500;
   createCanvas(cSize, cSize);
-  equ_subobj = parse_PEMDAS(prompt("Enter f(x)"),0);
+  equ_string = prompt("Enter f(x)", "0.002x^2");
+  equ_subobj = parse_PEMDAS(equ_string,0);
   for (var i = 0; i < width * 2; i++) {
     //values[i] = f(i) ---> point = (i, values[i]) 
     values[i] = myFunction(i);
@@ -168,7 +173,7 @@ function calculateIntegral() {
   for (var v = width; v >= 0; v--) {
     val += values[v];
   }
-  console.log(val);
+  console.log("calculateIntegral returns "+val);
   return val;
 }
 
@@ -176,7 +181,7 @@ function calcDeriv(x) {
   var slope = 0;
   if (x < values.length) {
     slope = values[x + 1] - values[x];
-    console.log(slope);
+    console.log("calcDeriv returns "+slope);
   }
   strokeWeight(3);
   line(x, height - values[x], width, height - (values[x] + slope * (width - x)));
@@ -228,10 +233,12 @@ function slider(xpos, ypos) {
   text("0", xpos - 20, ypos + (width / 60));
   text(width, xpos + 15 + width / 3, ypos + (width / 60));
   text("Subdivisions: " + n, xpos + (width / 12), ypos + 30);
-  if (mouseX > xpos + sliderPos && mouseX < (xpos + sliderPos + width / 60) && mouseY > ypos - width / 80 && mouseY < ypos + 3 * (width / 80)) {
-    mouseOverSlider = true;
-  } else {
-    mouseOverSlider = false;
+  if (mouse_pressed === false) {
+    if (mouseX > xpos + sliderPos && mouseX < (xpos + sliderPos + width / 60) && mouseY > ypos - width / 80 && mouseY < ypos + 3 * (width / 80)) {
+      mouseOverSlider = true;
+    } else {
+      mouseOverSlider = false;
+    }
   }
   if (sliderPos < 0) {
     sliderPos = 0;
@@ -243,27 +250,36 @@ function slider(xpos, ypos) {
 }
 
 function mouseDragged() {
-  if (mouseOverSlider && sliderPos >= 0 && sliderPos <= width / 3) {
+  if (mouseOverSlider/* && sliderPos >= 0 && sliderPos <= width / 3*/) {
     sliderPos = sliderPos - (pmouseX - mouseX);
     displayArea = "";
+    if (sliderPos < 0) {
+      sliderPos = 0;
+    } else if (sliderPos > width / 3) {
+      sliderPos = (width / 3);
+    }
   }
 }
 
 function mousePressed() {
+  mouse_pressed = true;
   if (!derivMode) {
     for (var i = 0; i < 4; i++) {
       if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
-        console.log("duh");
+        //console.log("duh");
         mode = i;
+        calculate();
       }
     }
     for (var j = 4; j < 7; j++) {
       if (mouseX > 2 * bWidth + j * (bWidth + 1) && mouseX < 2 * bWidth + (j + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
         if (j == 4) {
-          n = prompt("Enter # of subdivisions: ", 100);
+          n = prompt("Enter # of subdivisions: ", n);
           sliderPos = (n / width) * (width / 3);
+          calculate();
         } else if (j == 5) {
-          equ_subobj = parse_PEMDAS(prompt("Enter f(x)"),0);
+          equ_string = prompt("Enter f(x)",equ_string);
+          equ_subobj = parse_PEMDAS(equ_string,0);
           for (var i = 0; i < width * 2; i++) {
             //values[i] = f(i) ---> point = (i, values[i]) 
             values[i] = myFunction(i);
@@ -276,7 +292,7 @@ function mousePressed() {
   } else if (derivMode) { 
    for (var i = 0; i < 1; i++) { //hahahahahaa
       if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
-            derivMode = false;
+        derivMode = false;
       }
     }
   }
@@ -284,7 +300,18 @@ function mousePressed() {
 
 function keyPressed() {
   if (key == ' ' && !derivMode) {
-    calculating = true;
-    estimatedArea = 0;
+    calculate();
   }
+}
+
+function mouseReleased() {
+  if (mouseOverSlider && !derivMode) {
+    calculate();
+  }
+  mouse_pressed = false;
+}
+
+function calculate() {
+  calculating = true;
+  estimatedArea = 0;
 }
