@@ -20,8 +20,8 @@ var displayArea = "";
 var equ_subobj;
 
 function setup() {
-  //var cSize = prompt("Window size:", 500)
-  var cSize = 500;
+  var cSize = prompt("Window size:", 500)
+  //var cSize = 500;
   createCanvas(cSize, cSize);
   equ_subobj = parse_PEMDAS(prompt("Enter f(x)"),0);
   for (var i = 0; i < width * 2; i++) {
