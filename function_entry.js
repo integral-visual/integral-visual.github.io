@@ -23,7 +23,7 @@ function equ_obj_addition(subobjects_) {
   this.f = function(x) {
     var sum = 0;
     for (var i = 0; i < this.subobjects.length; i++) {
-      if (this.subtract[i] == true) {
+      if (this.subtract[i] === true) {
         sum = sum-this.subobjects[i].f(x);
       } else {
         sum = sum+this.subobjects[i].f(x);
@@ -42,7 +42,7 @@ function equ_obj_multiplication(subobjects_) {
   this.f = function(x) {
     var product = 1;
     for (var i = 0; i < this.subobjects.length; i++) {
-      if (this.divide[i] == true) {
+      if (this.divide[i] === true) {
         product = product/this.subobjects[i].f(x);
       } else {
         product = product*this.subobjects[i].f(x);
@@ -91,14 +91,14 @@ function equ_obj_parenthesis(subobject_) {
 
 function parse_PEMDAS(string_var, start_at) {
   //start_at: 2=addition, 3=multiplication, 4=trigs, 5=exponents
-  if (start_at == 0) {
+  if (start_at === 0) {
     string_var = string_var.replace(" ","");//Remove all spaces
   }
   
   var sub_strings;
   //Step 1: See if the function is a basic one:
-  var sub_strings = parse_basic(string_var);
-  if (sub_strings != null) {
+  sub_strings = parse_basic(string_var);
+  if (sub_strings !== null) {
     return sub_strings;
   } else {
     sub_strings = [];
@@ -108,22 +108,25 @@ function parse_PEMDAS(string_var, start_at) {
   var prev_pos = 0;
   var current_sub_string_id = 0;
   var sub_parenthesis = 0;
+  var i;
+  var j;
+  var char_temp;
   
   //Step 2: If not, we search for additions, if they are not in parenthesis
   if (start_at <= 2) {
     if (string_var.indexOf("+") != -1 || string_var.indexOf("-") != -1) {
       print("Starting addition:");
       var subtract = [false];
-      for (var i=0; i<string_var.length; i++) {
+      for (i=0; i<string_var.length; i++) {
         if (string_var.charAt(i) == "+" || string_var.charAt(i) == "-") {
-          if (sub_parenthesis == 0) {
-            if (i == 0) {//If it is a negative sign at the start...
+          if (sub_parenthesis === 0) {
+            if (i === 0) {//If it is a negative sign at the start...
               if (string_var.charAt(i) == "-") {
                 subtract[0] = true;
                 prev_pos = 1;
               }
             } else {
-              var char_temp = string_var.charAt(i-1);//Prevents errors with *-1
+              char_temp = string_var.charAt(i-1);//Prevents errors with *-1
               if (char_temp != "*" && char_temp != "/") {
                 //This algorithm creates sub-strings split between the additions.
                 sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
@@ -147,7 +150,7 @@ function parse_PEMDAS(string_var, start_at) {
       sub_strings[current_sub_string_id] = string_var.substring(prev_pos,string_var.length);
       print("Addition Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
       var subojbects = []
-      for (var i=0; i<sub_strings.length; i++) {
+      for (i=0; i<sub_strings.length; i++) {
         subojbects[i] = parse_PEMDAS(sub_strings[i],3);
       }
       var addition = new equ_obj_addition(subojbects);
@@ -161,9 +164,9 @@ function parse_PEMDAS(string_var, start_at) {
     if (string_var.indexOf("*") != -1 || string_var.indexOf("/") != -1 || string_var.indexOf("(") != -1) {
       print("Starting multiplication:");
       var divide = [false];
-      for (var i=0; i<string_var.length; i++) {
+      for (i=0; i<string_var.length; i++) {
         if (string_var.charAt(i) == "*" || string_var.charAt(i) == "/") {
-          if (sub_parenthesis == 0) {
+          if (sub_parenthesis === 0) {
             //This algorithm creates sub-strings split between the additions.
             sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
             prev_pos = i+1;
@@ -176,9 +179,9 @@ function parse_PEMDAS(string_var, start_at) {
             current_sub_string_id += 1;
           }
         } else if (string_var.charAt(i) == "(") {
-          if (sub_parenthesis == 0) {
+          if (sub_parenthesis === 0) {
             if (prev_pos < i-1) {//Prevents errors with x*(x)
-              var char_temp = string_var.charAt(i-1);
+              char_temp = string_var.charAt(i-1);
               if (char_temp != "c" && char_temp != "s" && char_temp != "n") {//Prevents errors with trig functions
                 //This algorithm creates sub-strings split between the additions.
                 
@@ -192,9 +195,9 @@ function parse_PEMDAS(string_var, start_at) {
           sub_parenthesis += 1;
         } else if (string_var.charAt(i) == ")") {
           sub_parenthesis -= 1;
-          if (sub_parenthesis == 0) {
-            var char_temp = string_var.charAt(i+1);
-            if (char_temp != "(" && char_temp != "*" && char_temp != "/" && char_temp != "") {//Prevents errors with (x)(x), (x)*x, (x)/x
+          if (sub_parenthesis === 0) {
+            char_temp = string_var.charAt(i+1);
+            if (char_temp !== "(" && char_temp !== "*" && char_temp !== "/" && char_temp !== "") {//Prevents errors with (x)(x), (x)*x, (x)/x
               //This algorithm creates sub-strings split between the additions.
               
               sub_strings[current_sub_string_id] = string_var.substring(prev_pos,i);
@@ -207,8 +210,8 @@ function parse_PEMDAS(string_var, start_at) {
       }
       sub_strings[current_sub_string_id] = string_var.substring(prev_pos,string_var.length);
       print("Multiplication Part ["+current_sub_string_id+"] = "+sub_strings[current_sub_string_id]);
-      var subojbects = []
-      for (var i=0; i<sub_strings.length; i++) {
+      subojbects = [];
+      for (i=0; i<sub_strings.length; i++) {
         subojbects[i] = parse_PEMDAS(sub_strings[i],4);
       }
       var multiply = new equ_obj_multiplication(subojbects);
@@ -222,12 +225,12 @@ function parse_PEMDAS(string_var, start_at) {
     print("Starting trig:");
     var array_of_trigz = ["arcsin","arccos","arctan","sin","cos","tan"];
     var trig_func_id = -1;
-    for (var i=0; i<array_of_trigz.length;i++) {
+    for (i=0; i<array_of_trigz.length;i++) {
       if (string_var.startsWith(array_of_trigz[i])) {
         trig_func_id = i;
       }
     }
-    if (trig_func_id == -1) {
+    if (trig_func_id === -1) {
       print("No trig functions.");
     } else {
       sub_strings[0] = string_var.substring(array_of_trigz[trig_func_id].length);
@@ -296,12 +299,12 @@ function parse_PEMDAS(string_var, start_at) {
 }
 
 function parse_basic(string_thing) {
-    print("Basic Parse: "+string_thing);
+  print("Basic Parse: "+string_thing);
   a_b_array =  string_thing.split("x");
   if (a_b_array.length == 2) {
     a_b_array[1] = trim(a_b_array[1]);
     print("Basic 2var Parse of :"+a_b_array[0]+":x:"+a_b_array[1]);
-    if (a_b_array[0].includes("+") || a_b_array[0].indexOf("-") > 1 || a_b_array[0].includes("*") || a_b_array[0].includes("/") || a_b_array[0].includes("(") || a_b_array[0].includes(")")) {
+    if (a_b_array[0].includes("+") || a_b_array[0].indexOf("-") > 0 || a_b_array[0].includes("*") || a_b_array[0].includes("/") || a_b_array[0].includes("(") || a_b_array[0].includes(")")) {
       print("Basic Parse failed due to addition or multiplication in 1st term");
       return null;
     }
@@ -329,6 +332,8 @@ function parse_basic(string_thing) {
     var a;
     if (a_b_array[0] == "") {
       a = 1;
+    } else if (a_b_array[0] == "-") {
+      a = -1;
     } else {
       a = parseFloat(a_b_array[0]);
     }
