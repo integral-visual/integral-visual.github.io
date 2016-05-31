@@ -276,10 +276,12 @@ function mousePressed() {
         if (j == 4) {
           n = prompt("Enter # of subdivisions: ", n);
           sliderPos = (n / width) * (width / 3);
+          integral = calculateIntegral();
           calculate();
         } else if (j == 5) {
           equ_string = prompt("Enter f(x)",equ_string);
           equ_subobj = parse_PEMDAS(equ_string,0);
+          
           for (var i = 0; i < width * 2; i++) {
             //values[i] = f(i) ---> point = (i, values[i]) 
             values[i] = myFunction(i);
