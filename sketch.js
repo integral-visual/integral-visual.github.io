@@ -268,7 +268,7 @@ function mousePressed() {
       if (mouseX > bWidth + i * (bWidth + 1) && mouseX < bWidth + (i + 1) * (bWidth + 1) && mouseY > bYpos && mouseY < bYpos + bHeight) {
         //console.log("duh");
         mode = i;
-        calculate();
+        estimateArea();
       }
     }
     for (var j = 4; j < 7; j++) {
@@ -276,17 +276,16 @@ function mousePressed() {
         if (j == 4) {
           n = prompt("Enter # of subdivisions: ", n);
           sliderPos = (n / width) * (width / 3);
-          integral = calculateIntegral();
-          calculate();
+          estimateArea();
         } else if (j == 5) {
           equ_string = prompt("Enter f(x)",equ_string);
           equ_subobj = parse_PEMDAS(equ_string,0);
-          integral = calculateIntegral();
-          calculate();
+          estimateArea();
           for (var i = 0; i < width * 2; i++) {
             //values[i] = f(i) ---> point = (i, values[i]) 
             values[i] = myFunction(i);
           }
+        integral = calculateIntegral();
         } else if (j == 6) {
           derivMode = true;
         }
@@ -301,20 +300,14 @@ function mousePressed() {
   }
 }
 
-function keyPressed() {
-  if (key == ' ' && !derivMode) {
-    calculate();
-  }
-}
-
 function mouseReleased() {
   if (mouseOverSlider && !derivMode) {
-    calculate();
+    estimateArea();
   }
   mouse_pressed = false;
 }
 
-function calculate() {
+function estimateArea() {
   calculating = true;
   estimatedArea = 0;
 }
